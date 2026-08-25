@@ -21,28 +21,50 @@
 
             <x-auth-validation-errors class="mb-4" :errors="$errors" />
 
-            <form class="mt-8 space-y-6" action="{{ route('register') }}" method="POST">
+            @if ($existingAccount)
+                <div class="rounded-md bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
+                    An account with this email already exists. Activating as an organiser will add organiser
+                    access to that account &mdash; you can set a new password below or keep your current one.
+                </div>
+            @endif
+
+            <form class="mt-8 space-y-6" action="{{ route('register') }}" method="POST"
+                  @if ($existingAccount) x-data="{ keepPassword: '0' }" @endif>
                 @csrf
                 <input type="hidden" name="remember" value="true">
                 <input type="hidden" name="name" value="{{ $user->name }}">
                 <input type="hidden" name="email" value="{{ $user->email }}">
+
+                @if ($existingAccount)
+                    <div class="mt-4 space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="keep_password" value="0" x-model="keepPassword">
+                            <span class="ml-2 text-sm text-gray-700">Set a new password</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="keep_password" value="1" x-model="keepPassword">
+                            <span class="ml-2 text-sm text-gray-700">Keep my current password</span>
+                        </label>
+                    </div>
+                @endif
+
                 <!-- Password -->
-                <div class="mt-4">
+                <div class="mt-4" @if ($existingAccount) x-show="keepPassword === '0'" @endif>
                     <x-label for="password" :value="__('Password')" />
 
                     <x-input id="password" class="block mt-1 w-full"
                              type="password"
                              name="password"
-                             required autocomplete="new-password" />
+                             :required="! $existingAccount" autocomplete="new-password" />
                 </div>
 
                 <!-- Confirm Password -->
-                <div class="mt-4">
+                <div class="mt-4" @if ($existingAccount) x-show="keepPassword === '0'" @endif>
                     <x-label for="password_confirmation" :value="__('Confirm Password')" />
 
                     <x-input id="password_confirmation" class="block mt-1 w-full"
                              type="password"
-                             name="password_confirmation" required />
+                             name="password_confirmation" :required="! $existingAccount" />
                 </div>
 
                 <div>
